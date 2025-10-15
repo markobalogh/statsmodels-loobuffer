@@ -42,7 +42,7 @@ def _compute_min_std_IQR(data):
 
 
 def _compute_subset(class_type, data, bw, co, do, n_cvars, ix_ord,
-                    ix_unord, n_sub, class_vars, randomize, bound):
+                    ix_unord, n_sub, class_vars, randomize, bound, buffer_size=0):
     """"Compute bw on subset of data.
 
     Called from ``GenericKDE._compute_efficient_*``.
@@ -76,6 +76,7 @@ def _compute_subset(class_type, data, bw, co, do, n_cvars, ix_ord,
             dep_type,
             indep_type,
             bw=bw,
+            buffer_size=buffer_size,
             defaults=EstimatorSettings(efficient=False),
         )
     elif class_type == "KernelReg":
@@ -226,7 +227,7 @@ class GenericKDE :
             res = joblib.Parallel(n_jobs=self.n_jobs)(
                 joblib.delayed(_compute_subset)(
                     class_type, data, bw, co, do, n_cvars, ix_ord, ix_unord,
-                    n_sub, class_vars, self.randomize, bounds[i])
+                    n_sub, class_vars, self.randomize, bounds[i], self.buffer_size)
                 for i in range(n_blocks))
         else:
             res = []
@@ -234,7 +235,7 @@ class GenericKDE :
                 res.append(_compute_subset(class_type, data, bw, co, do,
                                            n_cvars, ix_ord, ix_unord, n_sub,
                                            class_vars, self.randomize,
-                                           bounds[i]))
+                                           bounds[i], self.buffer_size))
 
         for i in range(n_blocks):
             sample_scale[i, :] = res[i][0]
