@@ -408,7 +408,7 @@ class KDEMultivariateConditional(GenericKDE):
     array([ 0.41223484,  0.40976931])
     """
 
-    def __init__(self, endog, exog, dep_type, indep_type, bw,
+    def __init__(self, endog, exog, dep_type, indep_type, bw, buffer_size=0,
                  defaults=None):
         self.dep_type = dep_type
         self.indep_type = indep_type
@@ -420,6 +420,7 @@ class KDEMultivariateConditional(GenericKDE):
         self.nobs, self.k_dep = np.shape(self.endog)
         self.data = np.column_stack((self.endog, self.exog))
         self.k_vars = np.shape(self.data)[1]
+        self.buffer_size = buffer_size
         defaults = EstimatorSettings() if defaults is None else defaults
         self._set_defaults(defaults)
         if not self.efficient:
@@ -465,8 +466,8 @@ class KDEMultivariateConditional(GenericKDE):
         Similar to ``KDE.loo_likelihood`, but substitute ``f(y|x)=f(x,y)/f(x)``
         for ``f(x)``.
         """
-        yLOO = LeaveOneOut(self.data)
-        xLOO = LeaveOneOut(self.exog).__iter__()
+        yLOO = LeaveOneOut(self.data, self.buffer_size)
+        xLOO = LeaveOneOut(self.exog, self.buffer_size).__iter__()
         L = 0
         for i, Y_j in enumerate(yLOO):
             X_not_i = next(xLOO)

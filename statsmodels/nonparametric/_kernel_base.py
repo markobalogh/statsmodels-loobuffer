@@ -430,8 +430,9 @@ class LeaveOneOut:
     A little lighter weight than sklearn LOO. We do not need test index.
     Also passes views on X, not the index.
     """
-    def __init__(self, X):
+    def __init__(self, X, buffer_size=0):
         self.X = np.asarray(X)
+        self.buffer_size = buffer_size
 
     def __iter__(self):
         X = self.X
@@ -439,7 +440,9 @@ class LeaveOneOut:
 
         for i in range(nobs):
             index = np.ones(nobs, dtype=bool)
-            index[i] = False
+            buffer_start = max(0, i - self.buffer_size)
+            buffer_end = min(nobs, i + self.buffer_size + 1)
+            index[buffer_start:buffer_end] = False
             yield X[index, :]
 
 
